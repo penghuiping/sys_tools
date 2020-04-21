@@ -158,10 +158,10 @@ func Disk() {
 		return
 	}
 
-	fmt.Printf("%-20s \t %-30s \t %-10s \t %-30s \t %-10s \t %-10s \t %-10s \t %-10s\n", "Device", "Mountpoint", "Fstype", "Opts", "Total(MB)", "Free(MB)", "Used(MB)", "Percent")
+	fmt.Printf("%-20s \t %-40s \t %-10s \t %-30s \t %-10s \t %-10s \t %-10s \t %-10s\n", "Device", "Mountpoint", "Fstype", "Opts", "Total(MB)", "Free(MB)", "Used(MB)", "Percent")
 	for _, p := range partitions {
 		usage, _ := disk.Usage(p.Mountpoint)
-		fmt.Printf("%-20s \t %-30s \t %-10s \t %-30s \t %-10d \t %-10d \t %-10d \t %-10.2f\n", p.Device, p.Mountpoint, p.Fstype, p.Opts, usage.Total/1000000, usage.Free/1000000, usage.Used/1000000, usage.UsedPercent)
+		fmt.Printf("%-20s \t %-40s \t %-10s \t %-30s \t %-10d \t %-10d \t %-10d \t %-10.2f\n", p.Device, p.Mountpoint, p.Fstype, p.Opts, usage.Total/1000000, usage.Free/1000000, usage.Used/1000000, usage.UsedPercent)
 	}
 }
 
