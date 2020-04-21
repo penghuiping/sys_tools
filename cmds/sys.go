@@ -53,12 +53,28 @@ func processInfoCmd() {
 		return
 	}
 
-	pid, err1 := utils.Str2Int(params)
-	if err1 != nil {
-		helpCmd()
-		return
+	switch params {
+	case "-pid":
+		param3 := utils.GetCmdLineArgs(3)
+		if utils.IsBlankStr(params) {
+			helpCmd()
+			return
+		}
+
+		pid, err1 := utils.Str2Int(param3)
+		if err1 != nil {
+			fmt.Println("请使用正确的pid")
+			return
+		}
+		utils.ProcessInfo(int32(pid))
+		break
+	case "-list":
+		utils.ProcessListByKeyword("")
+		break
+	default:
+		break
 	}
-	utils.ProcessInfo(int32(pid))
+
 }
 
 //-disk 命令处理函数

@@ -9,7 +9,6 @@ import (
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/net"
 	"github.com/shirou/gopsutil/process"
-	"strconv"
 	"strings"
 	"syscall"
 )
@@ -86,7 +85,7 @@ func NetInterfaces() {
 
 //NetConnections 网络连接信息
 func NetConnections() {
-	conns, err := net.Connections("")
+	conns, err := net.Connections("inet")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -94,8 +93,8 @@ func NetConnections() {
 
 	fmt.Printf("%s\t%-40s\t%-40s\t%-10s\t%s\n", "PID", "SRC", "DIST", "STATUS", "TYPE")
 	for _, conn := range conns {
-		laddr := conn.Laddr.IP + ":" + strconv.Itoa(int(conn.Laddr.Port))
-		raddr := conn.Raddr.IP + ":" + strconv.Itoa(int(conn.Raddr.Port))
+		laddr := conn.Laddr.IP + ":" + Int2Str(int(conn.Laddr.Port))
+		raddr := conn.Raddr.IP + ":" + Int2Str(int(conn.Raddr.Port))
 		fmt.Printf("%d\t%-40s\t%-40s\t%-10s\t%s\n", conn.Pid, laddr, raddr, conn.Status, UDPAndTCPMap(conn.Type))
 	}
 }
@@ -197,9 +196,19 @@ func ProcessInfo(pid int32) {
 		return
 	}
 
-	fmt.Println(proc.MemoryInfo())
-	fmt.Println(proc.MemoryPercent())
-	fmt.Println(proc.NumThreads())
+	memo, _ := proc.MemoryInfo()
+	percent, _ := proc.MemoryPercent()
+	threads, _ := proc.NumThreads()
+	cmdline, _ := proc.Cmdline()
+	name, _ := proc.Name()
+	ctx, _ := proc.NumCtxSwitches()
+
+	fmt.Println("进程名:", name)
+	fmt.Println("内存信息:", memo)
+	fmt.Println("内存使用率", percent)
+	fmt.Println("线程数量:", threads)
+	fmt.Println("上下文切换数量:", ctx)
+	fmt.Println("启动命令:", cmdline)
 }
 
 //SystemInfo 获取操作系统基本信息

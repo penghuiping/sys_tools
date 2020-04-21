@@ -22,7 +22,11 @@ func getCmd() map[string]string {
 		"-memo": "打印系统内存信息",
 		"-cpu":  "打印系统cpu信息",
 		"-sys":  "打印操作系统信息",
-		"-proc": "获取某个进程信息，使用方法 -proc [pid]",
+		"-proc": `获取某个进程信息，使用方法:
+
+		  -proc -pid [pid] 获取指定pid进程的详细信息
+		  -proc -list 获取进程列表
+		  `,
 		"-disk": "获取磁盘信息",
 		"-net": `打印系统网络信息
 		 

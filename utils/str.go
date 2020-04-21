@@ -36,5 +36,5 @@ func Str2Int(value string) (int, error) {
 
 //Int2Str int转字符串
 func Int2Str(value int) string {
-	return string(value)
+	return strconv.Itoa(value)
 }
