@@ -72,6 +72,7 @@ func processInfoCmd() {
 		utils.ProcessListByKeyword("")
 		break
 	default:
+		helpCmd()
 		break
 	}
 

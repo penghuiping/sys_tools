@@ -2,6 +2,9 @@ package utils
 
 import (
 	"fmt"
+	"strings"
+	"syscall"
+
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
@@ -9,8 +12,6 @@ import (
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/net"
 	"github.com/shirou/gopsutil/process"
-	"strings"
-	"syscall"
 )
 
 //CPUInfo 获取cpu信息
@@ -38,13 +39,12 @@ func CPUTimes(percpu bool) {
 		return
 	}
 
-	fmt.Printf("%-10s\t%s\t%s\t%s\t%s\t%s\n", "name", "user", "sys", "idle", "iowait", "nice")
+	fmt.Printf("%-10s|%-15s|%-15s|%-15s|%-15s|%-15s|%-15s|%-15s|%-15s|%-15s\n",
+		"Name", "User", "System", "Idle", "Iowait", "Nice", "Irq", "Softirq", "Total", "Percent")
 	for i := range stats1 {
 		stat1 := stats1[i]
-		fmt.Printf("%-10s\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n",
-			stat1.CPU, stat1.User/stat1.Total(),
-			stat1.System/stat1.Total(), stat1.Idle/stat1.Total(),
-			stat1.Iowait/stat1.Total(), stat1.Nice)
+		fmt.Printf("%-10s|%-15.2f|%-15.2f|%-15.2f|%-15.2f|%-15.2f|%-15.2f|%-15.2f|%-15.2f|%-15.2f\n",
+			stat1.CPU, stat1.User, stat1.System, stat1.Idle, stat1.Iowait, stat1.Nice, stat1.Irq, stat1.Softirq, stat1.Total(), 1-stat1.Idle/stat1.Total())
 	}
 }
 
@@ -56,9 +56,10 @@ func CPULoad() {
 		return
 	}
 
-	fmt.Println("1分钟load:\t", avg.Load1)
-	fmt.Println("5分钟load:\t", avg.Load5)
-	fmt.Println("15分钟load:\t", avg.Load15)
+	fmt.Println("cpu负载:")
+	fmt.Println("\t1分钟load:\t", avg.Load1)
+	fmt.Println("\t5分钟load:\t", avg.Load5)
+	fmt.Println("\t15分钟load:\t", avg.Load15)
 }
 
 //NetInterfaces 网卡信息
@@ -157,10 +158,12 @@ func Disk() {
 		return
 	}
 
-	fmt.Printf("%-20s \t %-40s \t %-10s \t %-30s \t %-10s \t %-10s \t %-10s \t %-10s\n", "Device", "Mountpoint", "Fstype", "Opts", "Total(MB)", "Free(MB)", "Used(MB)", "Percent")
+	fmt.Printf("%-20s|%-6s|%-40s|%-10s|%-10s|%-10s|%-10s|%s\n",
+		"Device", "Fstype", "Opts", "Total(MB)", "Free(MB)", "Used(MB)", "Percent(%)", "Mountpoint")
 	for _, p := range partitions {
 		usage, _ := disk.Usage(p.Mountpoint)
-		fmt.Printf("%-20s \t %-40s \t %-10s \t %-30s \t %-10d \t %-10d \t %-10d \t %-10.2f\n", p.Device, p.Mountpoint, p.Fstype, p.Opts, usage.Total/1000000, usage.Free/1000000, usage.Used/1000000, usage.UsedPercent)
+		fmt.Printf("%-20s|%-6s|%-40s|%-10d|%-10d|%-10d|%-10.2f|%s\n",
+			p.Device, p.Fstype, p.Opts, usage.Total/1000000, usage.Free/1000000, usage.Used/1000000, usage.UsedPercent, p.Mountpoint)
 	}
 }
 
@@ -173,17 +176,29 @@ func ProcessListByKeyword(keyword string) {
 		return
 	}
 
-	fmt.Printf("%s \t %-40s \t %s\n", "pid", "name", "cmdline")
+	fmt.Printf("%-5s|%-10s|%-10s|%-10s|%-10s|%-10s|%-10s|%-10s|%-10s|%s\n", "Pid", "User", "System", "Idle", "Iowait", "Irq", "SoftIrq", "total", "percent", "Name")
+
 	for _, p := range processes {
 		name, _ := p.Name()
 		cmdline, _ := p.Cmdline()
+		times, _ := p.Times()
+
+		user := times.User
+		system := times.System
+		idle := times.Idle
+		iowait := times.Iowait
+		total := times.Total()
+		irq := times.Irq
+		softIrq := times.Softirq
+
+		percent, _ := p.CPUPercent()
 
 		if !IsBlankStr(keyword) {
 			if strings.Contains(cmdline, keyword) {
-				fmt.Printf("%d \t %-40s \t %s\n", p.Pid, name, cmdline)
+				fmt.Printf("%-5d|%-10.f|%-10.f|%-10.f|%-10.f|%-10.f|%-10.f|%-10.f|%-10.f|%s\n", p.Pid, user, system, idle, iowait, irq, softIrq, total, percent, name)
 			}
 		} else {
-			fmt.Printf("%d \t %-40s \t %s\n", p.Pid, name, cmdline)
+			fmt.Printf("%-5d|%-10.f|%-10.f|%-10.f|%-10.f|%-10.f|%-10.f|%-10.f|%-10.f|%s\n", p.Pid, user, system, idle, iowait, irq, softIrq, total, percent, name)
 		}
 	}
 }
