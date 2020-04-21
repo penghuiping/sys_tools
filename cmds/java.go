@@ -17,7 +17,7 @@ func javaCmd() {
 		utils.ExecShellCmd("java -version")
 		break
 	case "-pid":
-		processCmd("java")
+		utils.ProcessListByKeyword("java")
 		break
 	case "-heap":
 		pid := utils.GetCmdLineArgs(3)
