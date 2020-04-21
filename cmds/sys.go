@@ -52,10 +52,11 @@ func cpuCmd() {
 		fmt.Println("\tcpu名称:", stats[i].ModelName)
 		fmt.Println("\tcpu主频:", stats[i].Mhz, "Mhz")
 		fmt.Println("\tcpu核数:", stats[i].Cores)
+		fmt.Println()
 	}
 
 	fmt.Println()
-	stats1, err1 := cpu.Times(false)
+	stats1, err1 := cpu.Times(true)
 	if err1 != nil {
 		fmt.Println(err1)
 		return
@@ -207,7 +208,7 @@ func processInfoCmd() {
 }
 
 func diskCmd() {
-	partitions, err := disk.Partitions(true)
+	partitions, err := disk.Partitions(false)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -218,16 +219,4 @@ func diskCmd() {
 		usage, _ := disk.Usage(p.Mountpoint)
 		fmt.Printf("%-20s \t %-30s \t %-10s \t %-30s \t %-10d \t %-10d \t %-10d \t %-10.2f\n", p.Device, p.Mountpoint, p.Fstype, p.Opts, usage.Total/1000000, usage.Free/1000000, usage.Used/1000000, usage.UsedPercent)
 	}
-
-	IOCounters, err1 := disk.IOCounters()
-
-	if err1 != nil {
-		fmt.Println(err1)
-		return
-	}
-
-	disk.IOCounters()
-
-	fmt.Println(IOCounters)
-
 }
