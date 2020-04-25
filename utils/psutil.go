@@ -213,10 +213,6 @@ type processInfo struct {
 	CPUPercent float64
 }
 
-func less(i, j int) {
-
-}
-
 //ProcessListByKeyword 根据关键字获取进程列表
 func ProcessListByKeyword(keyword string) {
 	processes, err := process.Processes()
@@ -225,8 +221,6 @@ func ProcessListByKeyword(keyword string) {
 		Println(err)
 		return
 	}
-
-	Printf("%-5s|%-10s|%s\n", "Pid", "Percent", "Name")
 
 	var processeInfos []processInfo = make([]processInfo, 0)
 	for _, p := range processes {
@@ -246,8 +240,11 @@ func ProcessListByKeyword(keyword string) {
 	}
 	sort.SliceStable(processeInfos, less)
 
+	Clear()
+	MoveCursor(1, 1)
+	Printf("%-5s|%-10s|%s\n", "Pid", "Percent", "Name")
 	for i, p := range processeInfos {
-		if i > 30 {
+		if i > 20 {
 			break
 		}
 
