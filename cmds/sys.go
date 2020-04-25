@@ -76,8 +76,12 @@ func processInfoCmd() {
 		utils.ProcessInfo(int32(pid))
 		break
 	case "-list":
-		utils.ProcessListByKeyword("")
-		break
+		utils.Clear()
+		for {
+			utils.MoveCursor(1, 1)
+			utils.ProcessListByKeyword("")
+			time.Sleep(3 * time.Second)
+		}
 	default:
 		helpCmd()
 		break
