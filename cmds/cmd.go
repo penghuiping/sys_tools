@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"fmt"
 	"reflect"
 	"sort"
 	"sys_tools/utils"
@@ -72,7 +71,7 @@ func CmdExec() {
 
 //打印帮助
 func helpCmd() {
-	fmt.Println("帮助信息:")
+	utils.Println("帮助信息:")
 	cmd := getCmd()
 	list := make([]string, 0)
 	for k := range cmd {
@@ -80,11 +79,11 @@ func helpCmd() {
 	}
 	sort.Strings(list)
 	for _, v := range list {
-		fmt.Println("\t"+v+":", "\t"+cmd[v])
+		utils.Println("\t"+v+":", "\t"+cmd[v])
 	}
 }
 
 //打印版本信息
 func versionCmd() {
-	fmt.Println("当前版本为:0.0.1-SNAPSHOT")
+	utils.Println("当前版本为:0.0.1-SNAPSHOT")
 }

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 )
@@ -29,8 +28,8 @@ func ExecShellCmd(command string) {
 	cmd := exec.Command("/bin/bash", "-c", command)
 	result, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Println(err)
+		Println(err)
 	} else {
-		fmt.Println(string(result))
+		Println(string(result))
 	}
 }

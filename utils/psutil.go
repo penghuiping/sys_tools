@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"strings"
 	"syscall"
 
@@ -18,33 +17,70 @@ import (
 func CPUInfo() {
 	stats, err := cpu.Info()
 	if err != nil {
-		fmt.Println(err)
+		Println(err)
 		return
 	}
 
-	fmt.Println("cpu信息:")
+	Println("cpu信息:")
 	for i := 0; i < len(stats); i++ {
-		fmt.Println("\tcpu名称:", stats[i].ModelName)
-		fmt.Println("\tcpu主频:", stats[i].Mhz, "Mhz")
-		fmt.Println("\tcpu核数:", stats[i].Cores)
-		fmt.Println()
+		Println("\tcpu名称:", stats[i].ModelName)
+		Println("\tcpu主频:", stats[i].Mhz, "Mhz")
+		Println("\tcpu核数:", stats[i].Cores)
+		Println()
 	}
 }
 
+//用于 非totalcpu
+var percpuStats []cpu.TimesStat = nil
+
+//用于 totalcpu
+var totalcpuStats []cpu.TimesStat = nil
+
 //CPUTimes 获取cpu指标
 func CPUTimes(percpu bool) {
+
 	stats1, err1 := cpu.Times(percpu)
 	if err1 != nil {
-		fmt.Println(err1)
+		Println(err1)
 		return
 	}
 
-	fmt.Printf("%-10s|%-15s|%-15s|%-15s|%-15s|%-15s|%-15s|%-15s|%-15s|%-15s\n",
-		"Name", "User", "System", "Idle", "Iowait", "Nice", "Irq", "Softirq", "Total", "Percent")
+	var lastTimeStats []cpu.TimesStat = nil
+
+	Printf("%-10s|%-15s|%-15s|%-15s|%-15s|%-15s|%-15s|%-15s\n",
+		"Name", "User", "System", "Idle", "Iowait", "Nice", "Irq", "Softirq")
 	for i := range stats1 {
 		stat1 := stats1[i]
-		fmt.Printf("%-10s|%-15.2f|%-15.2f|%-15.2f|%-15.2f|%-15.2f|%-15.2f|%-15.2f|%-15.2f|%-15.2f\n",
-			stat1.CPU, stat1.User, stat1.System, stat1.Idle, stat1.Iowait, stat1.Nice, stat1.Irq, stat1.Softirq, stat1.Total(), 1-stat1.Idle/stat1.Total())
+
+		if percpu {
+			lastTimeStats = percpuStats
+		} else {
+			lastTimeStats = totalcpuStats
+		}
+
+		if lastTimeStats != nil && len(lastTimeStats) > 0 {
+			//可以计算percent
+			user := (stat1.User - lastTimeStats[i].User) / (stat1.Total() - lastTimeStats[i].Total()) * 100
+			system := (stat1.System - lastTimeStats[i].System) / (stat1.Total() - lastTimeStats[i].Total()) * 100
+			idle := (stat1.Idle - lastTimeStats[i].Idle) / (stat1.Total() - lastTimeStats[i].Total()) * 100
+			iowait := (stat1.Iowait - lastTimeStats[i].Iowait) / (stat1.Total() - lastTimeStats[i].Total()) * 100
+			nice := (stat1.Nice - lastTimeStats[i].Nice) / (stat1.Total() - lastTimeStats[i].Total()) * 100
+			irq := (stat1.Irq - lastTimeStats[i].Irq) / (stat1.Total() - lastTimeStats[i].Total()) * 100
+			softIrq := (stat1.Softirq - lastTimeStats[i].Softirq) / (stat1.Total() - lastTimeStats[i].Total()) * 100
+
+			Printf("%-10s|%-15.2f|%-15.2f|%-15.2f|%-15.2f|%-15.2f|%-15.2f|%-15.2f\n",
+				stat1.CPU, user, system, idle, iowait, nice, irq, softIrq)
+		} else {
+			Printf("%-10s|%-15.2f|%-15.2f|%-15.2f|%-15.2f|%-15.2f|%-15.2f|%-15.2f\n",
+				stat1.CPU, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+		}
+
+	}
+
+	if percpu {
+		percpuStats = stats1
+	} else {
+		totalcpuStats = stats1
 	}
 }
 
@@ -52,25 +88,25 @@ func CPUTimes(percpu bool) {
 func CPULoad() {
 	avg, err2 := load.Avg()
 	if err2 != nil {
-		fmt.Println(err2)
+		Println(err2)
 		return
 	}
 
-	fmt.Println("cpu负载:")
-	fmt.Println("\t1分钟load:\t", avg.Load1)
-	fmt.Println("\t5分钟load:\t", avg.Load5)
-	fmt.Println("\t15分钟load:\t", avg.Load15)
+	Println("cpu负载:")
+	Printf("\t1分钟load: %.2f\n", avg.Load1)
+	Printf("\t5分钟load: %.2f\n", avg.Load5)
+	Printf("\t15分钟load: %.2f\n", avg.Load15)
 }
 
 //NetInterfaces 网卡信息
 func NetInterfaces() {
 	interfaces, err := net.Interfaces()
 	if err != nil {
-		fmt.Println(err)
+		Println(err)
 		return
 	}
 
-	fmt.Printf("%-10s\t%-20s\t%s\t%-35s\t%s\n", "名称", "mac", "mtu", "状态", "ip地址")
+	Printf("%-10s|%-20s|%-10s|%-35s|%s\n", "Name", "Mac", "MTU", "Status", "Ip")
 	for i := range interfaces {
 		inter := interfaces[i]
 		status := ""
@@ -80,7 +116,7 @@ func NetInterfaces() {
 				status = status + ","
 			}
 		}
-		fmt.Printf("%-10s\t%-20s\t%d\t%-35s\t%s\n", inter.Name, inter.HardwareAddr, inter.MTU, status, inter.Addrs)
+		Printf("%-10s|%-20s|%-10d|%-35s|%s\n", inter.Name, inter.HardwareAddr, inter.MTU, status, inter.Addrs)
 	}
 }
 
@@ -88,16 +124,17 @@ func NetInterfaces() {
 func NetConnections() {
 	conns, err := net.Connections("inet")
 	if err != nil {
-		fmt.Println(err)
+		Println(err)
 		return
 	}
 
-	fmt.Printf("%s\t%-40s\t%-40s\t%-10s\t%s\n", "PID", "SRC", "DIST", "STATUS", "TYPE")
+	Printf("%-8s|%-40s|%-40s|%-20s|%s\n", "PID", "SRC_IP", "DIST_IP", "STATUS", "TYPE")
 	for _, conn := range conns {
 		laddr := conn.Laddr.IP + ":" + Int2Str(int(conn.Laddr.Port))
 		raddr := conn.Raddr.IP + ":" + Int2Str(int(conn.Raddr.Port))
-		fmt.Printf("%d\t%-40s\t%-40s\t%-10s\t%s\n", conn.Pid, laddr, raddr, conn.Status, UDPAndTCPMap(conn.Type))
+		Printf("%-8d|%-40s|%-40s|%-20s|%s\n", conn.Pid, laddr, raddr, conn.Status, UDPAndTCPMap(conn.Type))
 	}
+
 }
 
 /***
@@ -125,44 +162,46 @@ func UDPAndTCPMap(value uint32) string {
 func Memo() {
 	stats, err := mem.VirtualMemory()
 	if err != nil {
-		fmt.Println(err)
-		return
+		Println(err)
 	}
-	fmt.Println("内存信息:")
-	fmt.Println("\t总共:", stats.Total/(1024*1024), "MB")
-	fmt.Println("\t空闲:", stats.Free/(1024*1024), "MB")
-	fmt.Println("\t已用:", stats.Used/(1024*1024), "MB")
-	fmt.Printf("\t使用率:%.2f%s\n", stats.UsedPercent, "%")
+
+	Printf(`内存信息: 
+	总共:%dMB
+	空闲:%dMB
+	已用:%dMB
+	使用率:%.2f%s`,
+		stats.Total/(1024*1024), stats.Free/(1024*1024), stats.Used/(1024*1024), stats.UsedPercent, "%")
+
 }
 
 //Swap 交换区
 func Swap() {
 	stats1, err1 := mem.SwapMemory()
 	if err1 != nil {
-		fmt.Println(err1)
-		return
+		Println(err1)
 	}
+	Printf(`交换区信息: 
+	总共:%dMB
+	空闲:%dMB
+	已用:%dMB
+	使用率:%.2f%s`,
+		stats1.Total/(1024*1024), stats1.Free/(1024*1024), stats1.Used/(1024*1024), stats1.UsedPercent, "%")
 
-	fmt.Println("交换区信息:")
-	fmt.Println("\t总共:", stats1.Total/(1024*1024), "MB")
-	fmt.Println("\t空闲:", stats1.Free/(1024*1024), "MB")
-	fmt.Println("\t已用:", stats1.Used/(1024*1024), "MB")
-	fmt.Printf("\t使用率:%.2f%s\n", stats1.UsedPercent, "%")
 }
 
 //Disk 磁盘
 func Disk() {
 	partitions, err := disk.Partitions(false)
 	if err != nil {
-		fmt.Println(err)
+		Println(err)
 		return
 	}
 
-	fmt.Printf("%-20s|%-10s|%-40s|%-10s|%-10s|%-10s|%-10s|%s\n",
+	Printf("%-20s|%-10s|%-40s|%-10s|%-10s|%-10s|%-10s|%s\n",
 		"Device", "Fstype", "Opts", "Total(MB)", "Free(MB)", "Used(MB)", "Percent(%)", "Mountpoint")
 	for _, p := range partitions {
 		usage, _ := disk.Usage(p.Mountpoint)
-		fmt.Printf("%-20s|%-10s|%-40s|%-10d|%-10d|%-10d|%-10.2f|%s\n",
+		Printf("%-20s|%-10s|%-40s|%-10d|%-10d|%-10d|%-10.2f|%s\n",
 			p.Device, p.Fstype, p.Opts, usage.Total/1000000, usage.Free/1000000, usage.Used/1000000, usage.UsedPercent, p.Mountpoint)
 	}
 }
@@ -172,17 +211,14 @@ func ProcessListByKeyword(keyword string) {
 	processes, err := process.Processes()
 
 	if err != nil {
-		fmt.Println(err)
+		Println(err)
 		return
 	}
-
-	fmt.Printf("%-5s|%-10s|%-10s|%-10s|%-10s|%-10s|%-10s|%-10s|%-10s|%s\n", "Pid", "User", "System", "Idle", "Iowait", "Irq", "SoftIrq", "total", "percent", "Name")
-
+	Printf("%-5s|%-10s|%-10s|%-10s|%-10s|%-10s|%-10s|%-10s|%-10s|%s\n", "Pid", "User", "System", "Idle", "Iowait", "Irq", "SoftIrq", "total", "percent", "Name")
 	for _, p := range processes {
 		name, _ := p.Name()
 		cmdline, _ := p.Cmdline()
 		times, _ := p.Times()
-
 		user := times.User
 		system := times.System
 		idle := times.Idle
@@ -195,10 +231,10 @@ func ProcessListByKeyword(keyword string) {
 
 		if !IsBlankStr(keyword) {
 			if strings.Contains(cmdline, keyword) {
-				fmt.Printf("%-5d|%-10.f|%-10.f|%-10.f|%-10.f|%-10.f|%-10.f|%-10.f|%-10.f|%s\n", p.Pid, user, system, idle, iowait, irq, softIrq, total, percent, name)
+				Printf("%-5d|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%s\n", p.Pid, user, system, idle, iowait, irq, softIrq, total, percent, name)
 			}
 		} else {
-			fmt.Printf("%-5d|%-10.f|%-10.f|%-10.f|%-10.f|%-10.f|%-10.f|%-10.f|%-10.f|%s\n", p.Pid, user, system, idle, iowait, irq, softIrq, total, percent, name)
+			Printf("%-5d|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%s\n", p.Pid, user, system, idle, iowait, irq, softIrq, total, percent, name)
 		}
 	}
 }
@@ -207,7 +243,7 @@ func ProcessListByKeyword(keyword string) {
 func ProcessInfo(pid int32) {
 	proc, err := process.NewProcess(pid)
 	if err != nil {
-		fmt.Println(err)
+		Println(err)
 		return
 	}
 
@@ -218,12 +254,12 @@ func ProcessInfo(pid int32) {
 	name, _ := proc.Name()
 	ctx, _ := proc.NumCtxSwitches()
 
-	fmt.Println("进程名:", name)
-	fmt.Println("内存信息:", memo)
-	fmt.Println("内存使用率", percent)
-	fmt.Println("线程数量:", threads)
-	fmt.Println("上下文切换数量:", ctx)
-	fmt.Println("启动命令:", cmdline)
+	Println("进程名:", name)
+	Println("内存信息:", memo)
+	Println("内存使用率", percent)
+	Println("线程数量:", threads)
+	Println("上下文切换数量:", ctx)
+	Println("启动命令:", cmdline)
 }
 
 //SystemInfo 获取操作系统基本信息
@@ -231,16 +267,16 @@ func SystemInfo() {
 	info, err := host.Info()
 
 	if err != nil {
-		fmt.Println(err)
+		Println(err)
 		return
 	}
-	fmt.Println("操作系统信息:")
-	fmt.Println("\thostname:", info.Hostname)
-	fmt.Println("\thostId:", info.HostID)
-	fmt.Println("\tkernelVersion:", info.KernelVersion)
-	fmt.Println("\tkernelArch:", info.KernelArch)
-	fmt.Println("\tos:", info.OS)
-	fmt.Println("\tplatformVersion:", info.PlatformVersion)
-	fmt.Println("\tprocess number:", info.Procs)
-	fmt.Println("\tuptime:", info.Uptime, "秒")
+	Println("操作系统信息:")
+	Println("\thostname:", info.Hostname)
+	Println("\thostId:", info.HostID)
+	Println("\tkernelVersion:", info.KernelVersion)
+	Println("\tkernelArch:", info.KernelArch)
+	Println("\tos:", info.OS)
+	Println("\tplatformVersion:", info.PlatformVersion)
+	Println("\tprocess number:", info.Procs)
+	Println("\tuptime:", info.Uptime, "秒")
 }

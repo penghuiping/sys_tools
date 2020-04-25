@@ -1,7 +1,9 @@
 package cmds
 
-import "sys_tools/utils"
-import "fmt"
+import (
+	"fmt"
+	"sys_tools/utils"
+)
 
 //java程序相关命令
 func javaCmd() {

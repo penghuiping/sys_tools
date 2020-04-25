@@ -2,8 +2,8 @@ package cmds
 
 import (
 	"errors"
-	"fmt"
 	"os"
+	"sort"
 	"strings"
 	"sys_tools/utils"
 )
@@ -11,47 +11,74 @@ import (
 func httpCmd() {
 	url, err := getHTTPUrl()
 	if err != nil {
-		fmt.Println(err)
+		utils.Println(err)
 		return
 	}
 
 	method, err := getHTTPMethod()
 	if err != nil {
-		fmt.Println(err)
+		utils.Println(err)
 		return
 	}
 
 	headers, err := getHTTPHeaders()
 	if err != nil {
-		fmt.Println(err)
+		utils.Println(err)
 		return
 	}
 
 	switch method {
 	case "get":
 		{
-			res, err3 := new(utils.HTTP).Get(url, headers)
+			res, headers, err3 := new(utils.HTTP).Get(url, headers)
 			if err3 != nil {
-				fmt.Println(err3)
+				utils.Println(err3)
 				return
 			}
-			fmt.Println(string(res))
+
+			utils.Println()
+			//打印http headers信息
+			keys := make([]string, 0)
+			for k := range headers {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys)
+			for i := range keys {
+				utils.Println(keys[i], headers[keys[i]])
+			}
+			utils.Println()
+			//打印http body信息
+			utils.Println(string(res))
 			break
 		}
 	case "post":
 		{
 			body, err3 := getHTTPBody()
 			if err3 != nil {
-				fmt.Println(err3)
+				utils.Println(err3)
 				return
 			}
 
-			res, err4 := new(utils.HTTP).Post(url, headers, body)
+			res, headers, err4 := new(utils.HTTP).Post(url, headers, body)
 			if err4 != nil {
-				fmt.Println(err4)
+				utils.Println(err4)
 				return
 			}
-			fmt.Println(string(res))
+
+			utils.Println()
+			//打印http headers信息
+			keys := make([]string, 0)
+			for k := range headers {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys)
+			for i := range keys {
+				utils.Println(keys[i], headers[keys[i]])
+			}
+			utils.Println()
+
+			//打印http body信息
+			utils.Println(string(res))
 			break
 		}
 	default:

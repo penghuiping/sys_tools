@@ -1,26 +1,33 @@
 package cmds
 
 import (
-	"fmt"
 	"sys_tools/utils"
+	"time"
 )
 
 //-memo 命令处理海曙
 func memoCmd() {
-	utils.Memo()
-	fmt.Println()
-	utils.Swap()
+	utils.Clear()
+	for {
+		utils.MoveCursor(1, 1)
+		utils.Memo()
+		utils.Println()
+		utils.Swap()
+		time.Sleep(time.Duration(3 * time.Second))
+	}
 }
 
 //-cpu 命令处理函数
 func cpuCmd() {
-	utils.CPUInfo()
-	fmt.Println()
-	utils.CPUTimes(false)
-	fmt.Println()
-	utils.CPUTimes(true)
-	fmt.Println()
-	utils.CPULoad()
+	utils.Clear()
+	for {
+		utils.MoveCursor(1, 1)
+		utils.CPUInfo()
+		utils.CPULoad()
+		utils.Println()
+		utils.CPUTimes(false)
+		time.Sleep(time.Duration(3 * time.Second))
+	}
 }
 
 //-net 命令处理函数
@@ -63,7 +70,7 @@ func processInfoCmd() {
 
 		pid, err1 := utils.Str2Int(param3)
 		if err1 != nil {
-			fmt.Println("请使用正确的pid")
+			utils.Println("请使用正确的pid")
 			return
 		}
 		utils.ProcessInfo(int32(pid))

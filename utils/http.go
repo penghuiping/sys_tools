@@ -11,11 +11,11 @@ type HTTP struct {
 }
 
 //Get get请求
-func (hp *HTTP) Get(url string, headers map[string]string) ([]byte, error) {
+func (hp *HTTP) Get(url string, headers map[string]string) ([]byte, map[string]string, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	for k, v := range headers {
@@ -24,25 +24,30 @@ func (hp *HTTP) Get(url string, headers map[string]string) ([]byte, error) {
 
 	res, err1 := client.Do(req)
 	if err1 != nil {
-		return nil, err1
+		return nil, nil, err1
 	}
 	defer res.Body.Close()
 
+	headers1 := make(map[string]string)
+	for k1, v1 := range res.Header {
+		headers1[k1] = strings.Join(v1, ",")
+	}
+
 	content, err2 := ioutil.ReadAll(res.Body)
 	if err2 != nil {
-		return nil, err2
+		return nil, nil, err2
 	}
-	return content, nil
+	return content, headers1, nil
 }
 
 //Post post请求
-func (hp *HTTP) Post(url string, headers map[string]string, body string) ([]byte, error) {
+func (hp *HTTP) Post(url string, headers map[string]string, body string) ([]byte, map[string]string, error) {
 	client := &http.Client{}
 	a := strings.NewReader(body)
 	req, err := http.NewRequest("POST", url, a)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	for k, v := range headers {
@@ -51,13 +56,18 @@ func (hp *HTTP) Post(url string, headers map[string]string, body string) ([]byte
 
 	res, err1 := client.Do(req)
 	if err1 != nil {
-		return nil, err1
+		return nil, nil, err1
 	}
 	defer res.Body.Close()
 
+	headers1 := make(map[string]string)
+	for k1, v1 := range res.Header {
+		headers1[k1] = strings.Join(v1, ",")
+	}
+
 	content, err2 := ioutil.ReadAll(res.Body)
 	if err2 != nil {
-		return nil, err2
+		return nil, nil, err2
 	}
-	return content, nil
+	return content, headers1, nil
 }
