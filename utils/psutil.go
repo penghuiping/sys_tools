@@ -1,9 +1,6 @@
 package utils
 
 import (
-	"strings"
-	"syscall"
-
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
@@ -11,6 +8,9 @@ import (
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/net"
 	"github.com/shirou/gopsutil/process"
+	"sort"
+	"strings"
+	"syscall"
 )
 
 //CPUInfo 获取cpu信息
@@ -206,6 +206,17 @@ func Disk() {
 	}
 }
 
+type processInfo struct {
+	pid        int32
+	name       string
+	cmdline    string
+	CPUPercent float64
+}
+
+func less(i, j int) {
+
+}
+
 //ProcessListByKeyword 根据关键字获取进程列表
 func ProcessListByKeyword(keyword string) {
 	processes, err := process.Processes()
@@ -214,27 +225,38 @@ func ProcessListByKeyword(keyword string) {
 		Println(err)
 		return
 	}
-	Printf("%-5s|%-10s|%-10s|%-10s|%-10s|%-10s|%-10s|%-10s|%-10s|%s\n", "Pid", "User", "System", "Idle", "Iowait", "Irq", "SoftIrq", "total", "percent", "Name")
+
+	Printf("%-5s|%-10s|%s\n", "Pid", "Percent", "Name")
+
+	var processeInfos []processInfo = make([]processInfo, 0)
 	for _, p := range processes {
+		tmp := processInfo{}
 		name, _ := p.Name()
 		cmdline, _ := p.Cmdline()
-		times, _ := p.Times()
-		user := times.User
-		system := times.System
-		idle := times.Idle
-		iowait := times.Iowait
-		total := times.Total()
-		irq := times.Irq
-		softIrq := times.Softirq
-
 		percent, _ := p.CPUPercent()
+		tmp.pid = p.Pid
+		tmp.name = name
+		tmp.cmdline = cmdline
+		tmp.CPUPercent = percent
+		processeInfos = append(processeInfos, tmp)
+	}
+
+	less := func(i, j int) bool {
+		return processeInfos[i].CPUPercent > processeInfos[j].CPUPercent
+	}
+	sort.SliceStable(processeInfos, less)
+
+	for i, p := range processeInfos {
+		if i > 30 {
+			break
+		}
 
 		if !IsBlankStr(keyword) {
-			if strings.Contains(cmdline, keyword) {
-				Printf("%-5d|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%s\n", p.Pid, user, system, idle, iowait, irq, softIrq, total, percent, name)
+			if strings.Contains(p.cmdline, keyword) {
+				Printf("%-5d|%-10.2f|%s\n", p.pid, p.CPUPercent, p.name)
 			}
 		} else {
-			Printf("%-5d|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%-10.2f|%s\n", p.Pid, user, system, idle, iowait, irq, softIrq, total, percent, name)
+			Printf("%-5d|%-10.2f|%s\n", p.pid, p.CPUPercent, p.name)
 		}
 	}
 }
