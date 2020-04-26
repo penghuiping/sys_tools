@@ -107,7 +107,7 @@ func NetInterfaces() {
 		return
 	}
 
-	Printf("%-10s|%-20s|%-10s|%-35s|%s\n", "Name", "Mac", "MTU", "Status", "Ip")
+	Printf("%-15s|%-20s|%-10s|%-35s|%s\n", "Name", "Mac", "MTU", "Status", "Ip")
 	for i := range interfaces {
 		inter := interfaces[i]
 		status := ""
@@ -117,7 +117,7 @@ func NetInterfaces() {
 				status = status + ","
 			}
 		}
-		Printf("%-10s|%-20s|%-10d|%-35s|%s\n", inter.Name, inter.HardwareAddr, inter.MTU, status, inter.Addrs)
+		Printf("%-15s|%-20s|%-10d|%-35s|%s\n", inter.Name, inter.HardwareAddr, inter.MTU, status, inter.Addrs)
 	}
 }
 
@@ -267,17 +267,21 @@ func ProcessInfo(pid int32) {
 		return
 	}
 
+	cpuPercent, _ := proc.CPUPercent()
 	memo, _ := proc.MemoryInfo()
 	percent, _ := proc.MemoryPercent()
 	threads, _ := proc.NumThreads()
 	cmdline, _ := proc.Cmdline()
 	name, _ := proc.Name()
 	ctx, _ := proc.NumCtxSwitches()
+	conns,_ := proc.Connections()
 
 	Println("进程名:", name)
+	Printf("cpu使用率:%.2f%s\n", cpuPercent, "%")
+	Printf("内存使用率:%.2f%s\n", percent, "%")
 	Println("内存信息:", memo)
-	Println("内存使用率", percent)
 	Println("线程数量:", threads)
+	Println("网络连接:",conns)
 	Println("上下文切换数量:", ctx)
 	Println("启动命令:", cmdline)
 }
