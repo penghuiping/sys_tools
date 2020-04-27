@@ -17,6 +17,7 @@ func getCmd() map[string]string {
 		  -heap 获取java堆内存信息 -heap [pid]
 		  -dump 输出java堆内存信息到文件 -dump [pid] [path]
 		  -pid 获取java进程pid
+		  -gc 1秒一次的gc统计监控 -gc [pid]
 		  `,
 		"-memo": "打印系统内存信息",
 		"-cpu":  "打印系统cpu信息",

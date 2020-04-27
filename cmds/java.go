@@ -38,6 +38,13 @@ func javaCmd() {
 		}
 		res := fmt.Sprintf("jmap -dump:format=b,file=%s %s", path, pid)
 		utils.ExecShellCmd(res)
+	case "-gc":
+		pid := utils.GetCmdLineArgs(3)
+		if utils.IsBlankStr(pid) {
+			helpCmd()
+			return
+		}
+		utils.ExecShellCmd1("jstat -gcutil " + pid + " 1000")
 	default:
 		helpCmd()
 		break

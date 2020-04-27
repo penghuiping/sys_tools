@@ -21,7 +21,6 @@ func CPUInfo() {
 		Println(err)
 		return
 	}
-
 	Println("cpu信息:")
 	for i := 0; i < len(stats); i++ {
 		Println("\tcpu名称:", stats[i].ModelName)
@@ -208,10 +207,11 @@ func Disk() {
 }
 
 type processInfo struct {
-	pid        int32
-	name       string
-	cmdline    string
-	CPUPercent float64
+	pid         int32
+	name        string
+	cmdline     string
+	CPUPercent  float64
+	MemoPercent float64
 }
 
 //ProcessListByKeyword 根据关键字获取进程列表
@@ -228,11 +228,14 @@ func ProcessListByKeyword(keyword string) {
 		tmp := processInfo{}
 		name, _ := p.Name()
 		cmdline, _ := p.Cmdline()
-		percent, _ := p.CPUPercent()
+		cpu, _ := p.CPUPercent()
+		memo, _ := p.MemoryPercent()
+		p.Threads()
 		tmp.pid = p.Pid
 		tmp.name = name
 		tmp.cmdline = cmdline
-		tmp.CPUPercent = percent
+		tmp.CPUPercent = cpu
+		tmp.MemoPercent = float64(memo)
 		processeInfos = append(processeInfos, tmp)
 	}
 
@@ -243,7 +246,7 @@ func ProcessListByKeyword(keyword string) {
 
 	Clear()
 	MoveCursor(1, 1)
-	Printf("%-5s|%-10s|%s\n", "Pid", "Percent", "Name")
+	Printf("%-5s|%-10s|%-10s|%s\n", "Pid", "Cpu(%)", "Memo(%)", "Name")
 	for i, p := range processeInfos {
 		if i > 20 {
 			break
@@ -251,10 +254,10 @@ func ProcessListByKeyword(keyword string) {
 
 		if !IsBlankStr(keyword) {
 			if strings.Contains(p.cmdline, keyword) {
-				Printf("%-5d|%-10.2f|%s\n", p.pid, p.CPUPercent, p.name)
+				Printf("%-5d|%-10.2f|%-10.2f|%s\n", p.pid, p.CPUPercent, p.MemoPercent, p.name)
 			}
 		} else {
-			Printf("%-5d|%-10.2f|%s\n", p.pid, p.CPUPercent, p.name)
+			Printf("%-5d|%-10.2f|%-10.2f|%s\n", p.pid, p.CPUPercent, p.MemoPercent, p.name)
 		}
 	}
 }
@@ -274,14 +277,14 @@ func ProcessInfo(pid int32) {
 	cmdline, _ := proc.Cmdline()
 	name, _ := proc.Name()
 	ctx, _ := proc.NumCtxSwitches()
-	conns,_ := proc.Connections()
+	conns, _ := proc.Connections()
 
 	Println("进程名:", name)
 	Printf("cpu使用率:%.2f%s\n", cpuPercent, "%")
 	Printf("内存使用率:%.2f%s\n", percent, "%")
 	Println("内存信息:", memo)
 	Println("线程数量:", threads)
-	Println("网络连接:",conns)
+	Println("网络连接:", conns)
 	Println("上下文切换数量:", ctx)
 	Println("启动命令:", cmdline)
 }

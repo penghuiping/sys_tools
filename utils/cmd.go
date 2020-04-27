@@ -33,3 +33,11 @@ func ExecShellCmd(command string) {
 		Println(string(result))
 	}
 }
+
+//ExecShellCmd1 执行shell命令
+func ExecShellCmd1(command string) {
+	cmd := exec.Command("/bin/bash", "-c", command)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Run()
+}
