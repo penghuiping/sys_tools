@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/penghuiping/sys_tools/cmds"
 	"os"
 	"os/signal"
-	"sys_tools/cmds"
 	"syscall"
 )
 

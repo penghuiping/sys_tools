@@ -2,7 +2,7 @@ package cmds
 
 import (
 	"fmt"
-	"sys_tools/utils"
+	"github.com/penghuiping/sys_tools/utils"
 )
 
 //java程序相关命令

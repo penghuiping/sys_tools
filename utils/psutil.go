@@ -307,3 +307,41 @@ func SystemInfo() {
 	Println("\tprocess number:", info.Procs)
 	Println("\tuptime:", info.Uptime, "秒")
 }
+
+//NumberOfProccess ...
+// func NumberOfProccess(status ProcessStatus) {
+// 	// processes, err := process.Processes()
+
+// 	// if err != nil {
+// 	// 	fmt.Println(err)
+// 	// }
+
+// 	// for _, proc := range processes {
+// 	// 	proc.Status
+// 	// }
+
+// }
+
+//ProcessStatus 进程状态
+type ProcessStatus string
+
+//ProcessRunning 进程运行
+const ProcessRunning ProcessStatus = "R"
+
+//ProcessSleep 睡眠状态
+const ProcessSleep ProcessStatus = "S"
+
+//ProcessStop 运行状态
+const ProcessStop ProcessStatus = "T"
+
+//ProcessIdle 空闲状态
+const ProcessIdle ProcessStatus = "I"
+
+//ProcessZombie 僵尸进程
+const ProcessZombie ProcessStatus = "Z"
+
+//ProcessWait 等待状态
+const ProcessWait ProcessStatus = "W"
+
+//ProcessLock  锁状态
+const ProcessLock ProcessStatus = "L"

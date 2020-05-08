@@ -2,10 +2,10 @@ package cmds
 
 import (
 	"errors"
+	"github.com/penghuiping/sys_tools/utils"
 	"os"
 	"sort"
 	"strings"
-	"sys_tools/utils"
 )
 
 func httpCmd() {

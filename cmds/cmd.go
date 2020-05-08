@@ -3,7 +3,7 @@ package cmds
 import (
 	"reflect"
 	"sort"
-	"sys_tools/utils"
+	"github.com/penghuiping/sys_tools/utils"
 )
 
 func getCmd() map[string]string {

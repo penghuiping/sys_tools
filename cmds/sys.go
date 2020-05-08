@@ -1,7 +1,7 @@
 package cmds
 
 import (
-	"sys_tools/utils"
+	"github.com/penghuiping/sys_tools/utils"
 	"time"
 )
 
